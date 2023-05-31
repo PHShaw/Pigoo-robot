@@ -1,0 +1,313 @@
+<robot name="pigoo">
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.23 0.095 0.005" />
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
+  </link>
+
+  <link name="mid_plate">
+    <visual>
+      <geometry>
+        <box size="0.23 0.095 0.005" />
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
+  </link>
+
+
+  <link name="top_plate">
+    <visual>
+      <geometry>
+        <box size="0.23 0.095 0.005"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0 0 .8 1"/>
+      </material>
+    </visual>
+  </link>
+
+  <link name="right_front_wheel">
+    <visual>
+      <geometry>
+        <cylinder length=".025" radius="0.035"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
+  </link>
+
+  <link name="left_front_wheel">
+    <visual>
+      <geometry>
+        <cylinder length=".025" radius="0.035"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
+  </link>
+
+  <link name="right_back_wheel">
+    <visual>
+      <geometry>
+        <cylinder length=".025" radius="0.035"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
+  </link>
+
+  <link name="left_back_wheel">
+    <visual>
+      <geometry>
+        <cylinder length=".025" radius="0.035"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
+  </link>
+
+  <link name="raspberry_pi">
+	  <visual>
+      <geometry>
+        <box size="0.09 0.055 0.02" />
+      </geometry>
+    </visual>
+    <material name="green">
+      <colour rgba="0 0.8 0 1"/>
+    </material>
+  </link>
+
+
+  <link name="cam_pan_bottom_link">
+		<visual>
+			<geometry>
+				<cylinder length="0.005" radius="0.01"/>
+			</geometry>
+	    <material name="black"/>
+	   </visual>
+	</link>
+    <link name="cam_pan_top_link">
+		<visual>
+			<geometry>
+				<cylinder length="0.005" radius="0.005"/>
+			</geometry>
+	    <material name="blue"/>
+	   </visual>
+	</link>
+
+  <link name="cam_pan_servo">
+    <visual>
+      <geometry>
+        <box size="0.023 0.012 0.02" />
+      </geometry>
+      <material name="blue" />
+    </visual>
+  </link>
+
+ <link name="cam_tilt_bottom_link">
+		<visual>
+			<geometry>
+				<cylinder length="0.005" radius="0.01"/>
+			</geometry>
+	    <material name="black"/>
+	   </visual>
+	</link>
+    <link name="cam_tilt_top_link">
+		<visual>
+			<geometry>
+				<cylinder length="0.005" radius="0.005"/>
+			</geometry>
+	    <material name="blue"/>
+	   </visual>
+	</link>
+
+
+  <link name="cam_tilt_servo">
+    <visual>
+      <geometry>
+        <box size="0.023 0.012 0.02" />
+      </geometry>
+      <material name="blue" />
+    </visual>
+  </link>
+
+
+
+  <link name="us_pan_bottom_link">
+		<visual>
+			<geometry>
+				<cylinder length="0.005" radius="0.01"/>
+			</geometry>
+	    <material name="black"/>
+	   </visual>
+	</link>
+    <link name="us_pan_top_link">
+		<visual>
+			<geometry>
+				<cylinder length="0.005" radius="0.005"/>
+			</geometry>
+	    <material name="blue"/>
+	   </visual>
+	</link>
+
+  <link name="us_pan_servo">
+    <visual>
+      <geometry>
+        <box size="0.023 0.012 0.02" />
+      </geometry>
+      <material name="blue" />
+    </visual>
+  </link>
+
+  <link name="ultrasonic">
+	<visual>
+      <geometry>
+        <box size="0.05 0.02 0.025"/>
+      </geometry>
+      <material name="black" />
+	</visual>
+</link>
+
+
+<!-- 
+  ********************************
+  * Fixed robot model joints
+  ********************************
+-->
+
+  <joint name="base_to_mid" type="fixed">
+    <parent link="base_link"/>
+    <child link="mid_plate"/>
+    <origin xyz="0 0 .045"/>
+  </joint>
+  <joint name="mid_to_top" type="fixed">
+    <parent link="mid_plate"/>
+    <child link="top_plate"/>
+    <origin xyz="0 0 .065"/>
+  </joint>
+  <joint name="top_to_pi" type="fixed">
+    <parent link="top_plate"/>
+    <child link="raspberry_pi"/>
+    <origin xyz="0.045 0 0.013"/>
+  </joint>
+  <joint name="pi_to_pan" type="fixed">
+    <parent link="raspberry_pi"/>
+    <child link="cam_pan_bottom_link"/>
+    <origin xyz="0.015 0 0.012"/>
+  </joint>
+
+  <joint name="pan_to_servo" type="fixed">
+    <parent link="cam_pan_top_link"/>
+    <child link="cam_pan_servo"/>
+    <origin xyz="0.007 0 0.012"/>
+  </joint>
+
+  <joint name="pan_servo_to_tilt" type="fixed">
+    <parent link="cam_pan_servo"/>
+    <child link="cam_tilt_bottom_link"/>
+    <origin rpy="-1.57075 0 0" xyz="0.015 -0.015 0.012"/>
+  </joint>
+
+  <joint name="tilt_to_servo" type="fixed">
+    <parent link="cam_tilt_top_link"/>
+    <child link="cam_tilt_servo"/>
+    <origin rpy="0 0 1.57075" xyz="0.00 -0.005 0.012"/>
+  </joint>
+
+  <joint name="mid_to_us_pan" type="fixed">
+    <parent link="mid_plate"/>
+    <child link="us_pan_bottom_link"/>
+    <origin xyz="0.095 0 0.005"/>
+  </joint>
+
+  <joint name="us_pan_to_servo" type="fixed">
+    <parent link="us_pan_top_link"/>
+    <child link="ultrasonic"/>
+    <origin rpy="0 0 1.57075" xyz="0.00 0 0.012"/>
+  </joint>
+
+<!-- 
+  ********************************
+  * Wheel joints
+  ********************************
+-->
+
+  <joint name="right_front_wheel_joint" type="continuous">
+    <axis xyz="0 0 1"/>
+    <parent link="base_link"/>
+    <child link="right_front_wheel"/>
+    <origin rpy="1.57075 0 0" xyz="0.045 -0.065 0.015"/>
+    <limit effort="100" velocity="100"/>
+    <dynamics damping="0.0" friction="0.0"/>
+  </joint>
+
+ <joint name="left_front_wheel_joint" type="continuous">
+    <axis xyz="0 0 1"/>
+    <parent link="base_link"/>
+    <child link="left_front_wheel"/>
+    <origin rpy="1.57075 0 0" xyz="0.045 0.065 0.015"/>
+    <limit effort="100" velocity="100"/>
+    <dynamics damping="0.0" friction="0.0"/>
+  </joint>
+
+ <joint name="right_back_wheel_joint" type="continuous">
+    <axis xyz="0 0 1"/>
+    <parent link="base_link"/>
+    <child link="right_back_wheel"/>
+    <origin rpy="1.57075 0 0" xyz="-0.045 -0.065 0.015"/>
+    <limit effort="100" velocity="100"/>
+    <dynamics damping="0.0" friction="0.0"/>
+  </joint>
+
+  <joint name="left_back_wheel_joint" type="continuous">
+    <axis xyz="0 0 1"/>
+    <parent link="base_link"/>
+    <child link="left_back_wheel"/>
+    <origin rpy="1.57075 0 0" xyz="-0.045 0.065 0.015"/>
+    <limit effort="100" velocity="100"/>
+    <dynamics damping="0.0" friction="0.0"/>
+  </joint>
+
+
+  <!-- 
+  ********************************
+  * Servo joints
+  ********************************
+  -->
+
+    <joint name="cam_pan_joint" type="revolute">
+    	<parent link="cam_pan_bottom_link"/>
+    	<child link="cam_pan_top_link"/>
+    	<origin xyz="0 0 0.005" rpy="0 0 0"/>
+    	<axis xyz="0 0 1"/>
+    	<limit lower="-1.57075" upper="1.57075" effort="10" velocity="3"/>
+  	</joint>
+
+	<joint name="cam_tilt_joint" type="revolute">
+    	<parent link="cam_tilt_bottom_link"/>
+    	<child link="cam_tilt_top_link"/>
+    	<origin xyz="0 0 0.005" rpy="0 0 0"/>
+    	<axis xyz="0 0 1"/>
+    	<limit lower="-1.57075" upper="1.57075" effort="10" velocity="3"/>
+	</joint>
+      
+    <joint name="us_pan_joint" type="revolute">
+    	<parent link="us_pan_bottom_link"/>
+    	<child link="us_pan_top_link"/>
+    	<origin xyz="0 0 0.005" rpy="0 0 0"/>
+    	<axis xyz="0 0 1"/>
+    	<limit lower="-1.57075" upper="1.57075" effort="10" velocity="3"/>
+  	</joint>
+
+</robot>

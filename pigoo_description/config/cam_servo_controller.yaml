@@ -1,0 +1,4 @@
+type: "position_controllers/JointGroupPositionController"
+joints:
+ - cam_pan_joint
+ - cam_tilt_joint

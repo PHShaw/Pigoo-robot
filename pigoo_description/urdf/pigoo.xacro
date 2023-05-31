@@ -1,0 +1,554 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="pigoo">
+
+<xacro:property name="wheelRadius" value="0.035" />
+<xacro:property name="wheelWidth" value="0.025" />
+<xacro:property name="midPlateOffset" value="0.045" />
+<xacro:property name="topPlateOffset" value="0.065" />
+<xacro:property name="plateHeight" value="0.005" />
+<xacro:property name="plateWidth" value="0.095" />
+<xacro:property name="plateLength" value="0.23" />
+
+
+
+  <!-- 
+  ********************************
+  * XACRO MACROS
+  ********************************
+  -->
+
+
+<xacro:macro name="box_inertia" params="m h d w">
+    <inertia  ixx="${(m*(h*h+d*d))/12}" ixy = "0" ixz = "0"
+              iyy="${(m*(w*w+d*d))/12}" iyz = "0"
+              izz="${(m*(w*w+h*h))/12}"
+     />
+</xacro:macro>
+
+<xacro:macro name="cylinder_inertia" params="m r h">
+    <inertia  ixx="${(m*(3*r*r+h*h))/12}" ixy = "0" ixz = "0"
+              iyy="${(m*(3*r*r+h*h))/12}" iyz = "0"
+              izz="${(m*r*r)/2}"
+    />
+</xacro:macro>
+
+
+<xacro:macro name="wheel" params="prefix reflect front">
+  <link name="${prefix}_wheel">
+    <visual>
+      <geometry>
+        <cylinder length="${wheelWidth}" radius="${wheelRadius}"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="${wheelWidth}" radius="${wheelRadius}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.02"/>
+      <xacro:cylinder_inertia m="0.02" r="${wheelRadius}" h="${wheelWidth}"/>
+    </inertial>
+  </link>
+
+  <joint name="${prefix}_wheel_joint" type="continuous">
+    <axis xyz="0 0 1"/>
+    <parent link="base_plate"/>
+    <child link="${prefix}_wheel"/>
+    <origin rpy="-${pi/2} 0 0" xyz="${front*0.045} ${reflect*(plateWidth/2 + wheelWidth/2+0.005)} 0.015"/>
+    <limit effort="100" velocity="100"/>
+    <dynamics damping="0.0" friction="0.0"/>
+  </joint>
+
+  <transmission name="${prefix}_wheel_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <actuator name="${prefix}_wheel_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+    <joint name="${prefix}_wheel_joint">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    </joint>
+  </transmission>
+
+  <gazebo reference="${prefix}_wheel">
+      <mu1 value="200.0"/>
+      <mu2 value="100.0"/>
+      <kp value="10000000.0" />
+      <kd value="1.0" />
+      <material>Gazebo/Grey</material>
+  </gazebo>
+
+</xacro:macro>
+
+<xacro:macro name="pillar" params="prefix length parent reflect front">
+  <link name="${prefix}_pillar">
+    <visual>
+      <geometry>
+        <cylinder length="${length}" radius="0.002"/>
+      </geometry>
+      <material name="brass">
+        <color rgba="0.88 0.7568 0.43 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="${length}" radius="0.002"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.005"/>
+      <xacro:cylinder_inertia m="0.005" r="0.002" h="${length}"/>
+    </inertial>
+  </link>
+
+  <joint name="${prefix}_pillar" type="fixed">
+    <parent link="${parent}"/>
+    <child link="${prefix}_pillar"/>
+    <origin xyz="${front*0.10} ${reflect*0.047} ${length/2+0.0025}"/>
+  </joint>
+</xacro:macro>
+
+
+  <!-- 
+  ********************************
+  * link definitions
+  ********************************
+  -->
+
+  <link name="base_link">
+    <origin xyz="0 0 0.015" />
+  </link>
+
+
+  <link name="base_plate">
+    <visual>
+      <geometry>
+        <box size="${plateLength} ${plateWidth} ${plateHeight}" />
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${plateLength} ${plateWidth} ${plateHeight}" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.08"/>
+      <xacro:box_inertia m="0.08" h="${plateHeight}" d="${plateWidth}" w="${plateLength}" />
+    </inertial>
+  </link>
+
+  <link name="mid_plate">
+    <visual>
+      <geometry>
+        <box size="${plateLength} ${plateWidth} ${plateHeight}" />
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${plateLength} ${plateWidth} ${plateHeight}" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.02"/>
+      <xacro:box_inertia m="0.02" h="${plateHeight}" d="${plateWidth}" w="${plateLength}" />
+    </inertial>
+  </link>
+
+  <link name="top_plate">
+    <visual>
+      <geometry>
+        <box size="${plateLength} ${plateWidth} ${plateHeight}"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0 0 .8 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${plateLength} ${plateWidth} ${plateHeight}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.02"/>
+      <xacro:box_inertia m="0.02" h="${plateHeight}" d="${plateWidth}" w="${plateLength}" />
+    </inertial>
+  </link>
+
+  <link name="batteryBox">
+	  <visual>
+      <geometry>
+        <box size="0.042 0.092 0.023" />
+      </geometry>
+      <material name="green">
+        <color rgba="0 0.8 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.042 0.092 0.023" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.07"/>
+      <xacro:box_inertia m="0.07" h="0.023" d="0.042" w="0.092" />
+    </inertial>
+  </link>
+
+
+  
+
+
+  <xacro:wheel prefix="right_front" reflect="-1" front="1" />
+  <xacro:wheel prefix="left_front" reflect="1" front="1" />
+  <xacro:wheel prefix="right_back" reflect="-1" front="-1" />
+  <xacro:wheel prefix="left_back" reflect="1" front="-1" />
+
+  <xacro:pillar prefix="base_right_front" length="${midPlateOffset - plateHeight}" parent="base_plate" reflect="-1" front="1" />
+  <xacro:pillar prefix="base_left_front" length="${midPlateOffset -plateHeight}" parent="base_plate" reflect="1" front="1" />
+  <xacro:pillar prefix="base_right_mid" length="${midPlateOffset - plateHeight}" parent="base_plate" reflect="-1" front="0" />
+  <xacro:pillar prefix="base_left_mid" length="${midPlateOffset - plateHeight}" parent="base_plate" reflect="1" front="0" />
+  <xacro:pillar prefix="base_right_back" length="${midPlateOffset - plateHeight}" parent="base_plate" reflect="-1" front="-1" />
+  <xacro:pillar prefix="base_left_back" length="${midPlateOffset - plateHeight}" parent="base_plate" reflect="1" front="-1" />
+
+  <xacro:pillar prefix="mid_right_front" length="${topPlateOffset- plateHeight}" parent="mid_plate" reflect="-1" front="1" />
+  <xacro:pillar prefix="mid_left_front" length="${topPlateOffset - plateHeight}" parent="mid_plate" reflect="1" front="1" />
+  <xacro:pillar prefix="mid_right_back" length="${topPlateOffset - plateHeight}" parent="mid_plate" reflect="-1" front="-1" />
+  <xacro:pillar prefix="mid_left_fback" length="${topPlateOffset - plateHeight}" parent="mid_plate" reflect="1" front="-1" />
+
+  <link name="raspberry_pi">
+	  <visual>
+      <geometry>
+        <box size="0.09 0.055 0.02" />
+      </geometry>
+      <material name="green">
+        <color rgba="0 0.8 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.09 0.055 0.02" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.02"/>
+      <xacro:box_inertia m="0.02" h="0.02" d="0.055" w="0.09" />
+    </inertial>
+  </link>
+
+
+  <link name="cam_pan_bottom_link">
+		<visual>
+			<geometry>
+				<cylinder length="0.005" radius="0.01"/>
+			</geometry>
+	    <material name="black"/>
+	  </visual>
+    <collision>
+			<geometry>
+				<cylinder length="0.005" radius="0.01"/>
+			</geometry>
+	  </collision>
+    <inertial>
+      <mass value="0.005"/>
+      <xacro:cylinder_inertia m="0.005" r="0.01" h="0.005"/>
+    </inertial>
+	</link>
+
+  <link name="cam_pan_top_link">
+		<visual>
+			<geometry>
+				<cylinder length="0.005" radius="0.005"/>
+			</geometry>
+	    <material name="blue"/>
+	  </visual>
+    <collision>
+			<geometry>
+				<cylinder length="0.005" radius="0.005"/>
+			</geometry>
+	  </collision>
+    <inertial>
+      <mass value="0.005"/>
+      <xacro:cylinder_inertia m="0.005" r="0.005" h="0.005"/>
+    </inertial>
+	</link>
+
+  <link name="cam_pan_servo">
+    <visual>
+      <geometry>
+        <box size="0.023 0.012 0.02" />
+      </geometry>
+      <material name="blue" />
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.023 0.012 0.02" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.02"/>
+      <xacro:box_inertia m="0.02" h="0.02" d="0.012" w="0.023" />
+    </inertial>
+  </link>
+
+ <link name="cam_tilt_bottom_link">
+		<visual>
+			<geometry>
+				<cylinder length="0.005" radius="0.01"/>
+			</geometry>
+	    <material name="black"/>
+	  </visual>
+    <collision>
+			<geometry>
+				<cylinder length="0.005" radius="0.01"/>
+			</geometry>
+	  </collision>
+    <inertial>
+      <mass value="0.005"/>
+      <xacro:cylinder_inertia m="0.005" r="0.01" h="0.005"/>
+    </inertial>
+	</link>
+
+  <link name="cam_tilt_top_link">
+		<visual>
+			<geometry>
+				<cylinder length="0.005" radius="0.005"/>
+			</geometry>
+	    <material name="blue"/>
+	  </visual>
+    <collision>
+			<geometry>
+				<cylinder length="0.005" radius="0.005"/>
+			</geometry>
+	  </collision>
+    <inertial>
+      <mass value="0.005"/>
+      <xacro:cylinder_inertia m="0.005" r="0.005" h="0.005"/>
+    </inertial>
+	</link>
+
+
+  <link name="cam_tilt_servo">
+    <visual>
+      <geometry>
+        <box size="0.023 0.012 0.02" />
+      </geometry>
+      <material name="blue" />
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.023 0.012 0.02" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.005"/>
+      <xacro:box_inertia m="0.005" h="0.02" d="0.012" w="0.023" />
+    </inertial>
+  </link>
+
+
+  <link name="us_pan_bottom_link">
+		<visual>
+			<geometry>
+				<cylinder length="0.005" radius="0.01"/>
+			</geometry>
+	    <material name="black"/>
+	  </visual>
+    <collision>
+			<geometry>
+				<cylinder length="0.005" radius="0.01"/>
+			</geometry>
+	  </collision>
+    <inertial>
+      <mass value="0.005"/>
+      <xacro:cylinder_inertia m="0.005" r="0.01" h="0.005"/>
+    </inertial>
+	</link>
+  
+  <link name="us_pan_top_link">
+		<visual>
+			<geometry>
+				<cylinder length="0.005" radius="0.005"/>
+			</geometry>
+	    <material name="blue"/>
+	  </visual>
+    <collision>
+			<geometry>
+				<cylinder length="0.005" radius="0.005"/>
+			</geometry>
+	  </collision>
+    <inertial>
+      <mass value="0.005"/>
+      <xacro:cylinder_inertia m="0.005" r="0.005" h="0.005"/>
+    </inertial>
+	</link>
+
+
+  <link name="ultrasonic">
+    <visual>
+      <geometry>
+        <box size="0.05 0.02 0.025"/>
+      </geometry>
+      <material name="blue" />
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.05 0.02 0.025"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.02"/>
+      <xacro:box_inertia m="0.02" h="0.025" d="0.02" w="0.05" />
+    </inertial>
+  </link>
+
+
+<!-- 
+  ********************************
+  * Fixed robot model joints
+  ********************************
+-->
+  <joint name="base_plate" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_plate"/>
+  </joint>
+
+  <joint name="base_to_mid" type="fixed">
+    <parent link="base_plate"/>
+    <child link="mid_plate"/>
+    <origin xyz="0 0 ${midPlateOffset}"/>
+  </joint>
+  <joint name="base_to_battery" type="fixed">
+    <parent link="mid_plate"/>
+    <child link="batteryBox"/>
+    <origin xyz="-0.095 0 0.012"/>
+  </joint>
+  <joint name="mid_to_top" type="fixed">
+    <parent link="mid_plate"/>
+    <child link="top_plate"/>
+    <origin xyz="0 0 ${topPlateOffset}"/>
+  </joint>
+  <joint name="top_to_pi" type="fixed">
+    <parent link="top_plate"/>
+    <child link="raspberry_pi"/>
+    <origin xyz="0.045 0 0.013"/>
+  </joint>
+  <joint name="pi_to_pan" type="fixed">
+    <parent link="raspberry_pi"/>
+    <child link="cam_pan_bottom_link"/>
+    <origin xyz="0.015 0 0.012"/>
+  </joint>
+
+  <joint name="pan_to_servo" type="fixed">
+    <parent link="cam_pan_top_link"/>
+    <child link="cam_pan_servo"/>
+    <origin xyz="0.007 0 0.012"/>
+  </joint>
+
+  <joint name="pan_servo_to_tilt" type="fixed">
+    <parent link="cam_pan_servo"/>
+    <child link="cam_tilt_bottom_link"/>
+    <origin rpy="-${pi/2} 0 0" xyz="0.015 -0.015 0.012"/>
+  </joint>
+
+  <joint name="tilt_to_servo" type="fixed">
+    <parent link="cam_tilt_top_link"/>
+    <child link="cam_tilt_servo"/>
+    <origin rpy="0 0 ${pi/2}" xyz="0.00 -0.005 0.012"/>
+  </joint>
+
+  <joint name="mid_to_us_pan" type="fixed">
+    <parent link="mid_plate"/>
+    <child link="us_pan_bottom_link"/>
+    <origin xyz="0.095 0 0.005"/>
+  </joint>
+
+  <joint name="us_pan_to_servo" type="fixed">
+    <parent link="us_pan_top_link"/>
+    <child link="ultrasonic"/>
+    <origin rpy="0 0 ${pi/2}" xyz="0.00 0 0.012"/>
+  </joint>
+
+
+
+  <!-- 
+  ********************************
+  * Servo joints
+  ********************************
+  -->
+
+    <joint name="cam_pan_joint" type="revolute">
+    	<parent link="cam_pan_bottom_link"/>
+    	<child link="cam_pan_top_link"/>
+    	<origin xyz="0 0 0.005" rpy="0 0 0"/>
+    	<axis xyz="0 0 1"/>
+    	<limit lower="-${pi/2}" upper="${pi/2}" effort="30" velocity="3"/>
+  	</joint>
+
+	<joint name="cam_tilt_joint" type="revolute">
+    	<parent link="cam_tilt_bottom_link"/>
+    	<child link="cam_tilt_top_link"/>
+    	<origin xyz="0 0 0.005" rpy="0 0 0"/>
+    	<axis xyz="0 0 1"/>
+    	<limit lower="-${pi/2}" upper="${pi/2}" effort="30" velocity="3"/>
+	</joint>
+      
+    <joint name="us_pan_joint" type="revolute">
+    	<parent link="us_pan_bottom_link"/>
+    	<child link="us_pan_top_link"/>
+    	<origin xyz="0 0 0.005" rpy="0 0 0"/>
+    	<axis xyz="0 0 1"/>
+    	<limit lower="-${pi/2}" upper="${pi/2}" effort="10" velocity="3"/>
+  	</joint>
+
+  <!--
+    ********************************
+    * Gazebo elements
+    ********************************
+    -->
+
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/</robotNamespace>
+    </plugin>
+  </gazebo>
+
+  <transmission name="cam_pan_trans" type="SimpleTransmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <actuator name="cam_pan_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+    <joint name="cam_pan_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+  </transmission>
+
+  <transmission name="cam_tilt_trans" type="SimpleTransmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <actuator name="cam_tilt_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+    <joint name="cam_tilt_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+  </transmission>
+
+  <transmission name="us_pan_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <actuator name="us_pan_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+    <joint name="us_pan_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+  </transmission>
+
+</robot>
